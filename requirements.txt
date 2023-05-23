@@ -1,0 +1,6 @@
+pydantic
+pymysql
+sqlalchemy
+customtkinter
+cryptography
+reportlab
