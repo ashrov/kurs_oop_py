@@ -65,7 +65,7 @@ class Book(TableViewable):
     code = Column(String(32), unique=True, nullable=False)
     name = Column(String(128), nullable=False)
     author = Column(String(128), nullable=False)
-    count = Column(Integer(), default=0)
+    count = Column(Integer(), default=0, nullable=False)
 
     readers = relationship("Reader", secondary="book_to_reader", back_populates="books")
 

@@ -105,11 +105,14 @@ class Table(CTkScrollableFrame):
             widget.destroy()
         self._rows_widgets.clear()
 
-    @get_database
-    def refresh(self, where_clause: Any = None, db: Session = None):
+    def refresh(self, where_clause: Any = None):
         logger.info(f"Refreshing '{self._db_class.get_table_name()}' table")
         self.clear()
 
+        self.after(20, lambda: self._fill_from_database(where_clause))
+
+    @get_database
+    def _fill_from_database(self, where_clause: Any = None, db: Session = None):
         q = db.query(self._db_class)
         if self._default_where_clause is not None:
             q = q.where(self._default_where_clause)

@@ -36,7 +36,7 @@ class Dumper:
         file_model = pydantic_models.FileModel(books=books, readers=pydantic_readers)
 
         logger.debug(f"Saving dump data to file '{filepath}'")
-        with open(filepath, "w") as f:
+        with open(filepath, "w", encoding="UTF-8") as f:
             f.write(file_model.json(indent=4, ensure_ascii=False))
 
     @staticmethod
@@ -69,7 +69,9 @@ class Dumper:
                         for book_code in reader.books]
 
             if not db_reader:
-                db_reader = database.Reader(**reader.dict())
+                db_reader = database.Reader(firstname=reader.firstname,
+                                            lastname=reader.lastname,
+                                            phone=reader.phone)
                 db.add(db_reader)
             else:
                 db_reader.firstname = reader.firstname

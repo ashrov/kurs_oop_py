@@ -1,16 +1,18 @@
 from typing import Any, Type, TypeVar
 from logging import getLogger, DEBUG, INFO
 
+from sqlalchemy.exc import DatabaseError, IntegrityError, DataError
 from tkinter import StringVar, filedialog
 from customtkinter import set_default_color_theme, set_appearance_mode, \
     CTk, CTkButton, CTkTabview, CTkLabel, CTkFrame, CTkToplevel, CTkEntry
 
 from .db import TableViewable, Book, Reader, Session, get_database
-from .interface import CustomInputDialog, Table, RowAction
+from .interface import CustomInputDialog, Table, RowAction, NotificationWindow
 from .config_models import ConfigModel
 from .json_dump import Dumper
 from .pdf_report import create_pdf_report
 from .wrappers import log_it
+from .exc import ModelEditError
 
 
 WINDOW_WIDTH = 800
@@ -72,20 +74,33 @@ class BookEditWindow(BaseEditWindow):
     def add_bottom_buttons(self):
         buttons_frame = CTkFrame(self)
 
-        save_button = CTkButton(buttons_frame, text="Сохранить", command=self.save)
+        save_button = CTkButton(buttons_frame, text="Сохранить", command=self.try_save)
         save_button.pack(side="right")
 
         buttons_frame.pack(side="bottom")
 
-    @get_database
-    def save(self, db: Session):
-        self._book.code = self._code_entry.get()
-        self._book.name = self._name_entry.get()
-        self._book.author = self._author_entry.get()
-        self._book.count = self._count_entry.get()
+    def try_save(self):
+        try:
+            self._save()
+        except ModelEditError as e:
+            notification = NotificationWindow(self, e.args[0])
 
-        db.add(self._book)
-        db.commit()
+    @get_database
+    def _save(self, db: Session):
+        try:
+            self._book.code = self._code_entry.get()
+            self._book.name = self._name_entry.get()
+            self._book.author = self._author_entry.get()
+            self._book.count = self._count_entry.get()
+
+            db.add(self._book)
+            db.commit()
+        except IntegrityError:
+            raise ModelEditError("Ошибка, код книги дублируется")
+        except DataError:
+            raise ModelEditError("Ошибка, количество должно быть числом")
+        except DatabaseError as e:
+            raise ModelEditError(e.args)
 
         self.destroy()
 

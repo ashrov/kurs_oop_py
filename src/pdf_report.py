@@ -10,12 +10,12 @@ from reportlab.pdfbase.ttfonts import TTFont
 from .db import get_database, Session, Book
 
 
-def grouper(iterable, n):
+def _grouper(iterable, n):
     args = [iter(iterable)] * n
     return itertools.zip_longest(*args)
 
 
-def export_to_pdf(data, filepath):
+def _export_to_pdf(data, filepath):
     c = Canvas(filepath, pagesize=A4)
     pdfmetrics.registerFont(TTFont('FreeSans', 'FreeSans.ttf'))
     c.setFont('FreeSans', 16)
@@ -34,7 +34,7 @@ def export_to_pdf(data, filepath):
     xlist = [x + x_offset for x in [0, 50, 220, 380, 460, 500]]
     ylist = [h - y_offset - i * padding for i in range(max_rows_per_page + 1)]
 
-    for rows in grouper(data, max_rows_per_page):
+    for rows in _grouper(data, max_rows_per_page):
         rows = tuple(filter(bool, rows))
         c.grid(xlist, ylist[:len(rows) + 1])
         for y, row in zip(ylist[:-1], rows):
@@ -44,9 +44,10 @@ def export_to_pdf(data, filepath):
 
     c.save()
 
+
 @get_database
 def create_pdf_report(filepath: str, db: Session = None):
     data = [("Код книги", "Название", "Автор", "Сейчас доступно", "Всего")]
     for book in db.query(Book).all():
         data.append((book.code, book.name, book.author, book.get_available_count(), book.count))
-    export_to_pdf(data, filepath)
+    _export_to_pdf(data, filepath)
