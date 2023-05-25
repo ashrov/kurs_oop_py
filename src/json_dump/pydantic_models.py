@@ -1,5 +1,7 @@
 """ Модели, из которых строится файл дампа """
 
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -10,11 +12,16 @@ class Book(BaseModel):
     count: int | None
 
 
+class BookIssue(BaseModel):
+    book_code: str
+    issue_date: datetime
+
+
 class Reader(BaseModel):
     firstname: str
     lastname: str
     phone: str
-    books: list[str]
+    books: list[BookIssue]
 
 
 class FileModel(BaseModel):

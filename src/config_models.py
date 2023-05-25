@@ -1,3 +1,5 @@
+""" Модели для парсинга файла конфига """
+
 from pydantic import BaseModel
 
 

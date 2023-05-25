@@ -10,7 +10,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 config_model = ConfigModel(**vars(config))
-init_db(config_model.database)
 
 
 if __name__ == "__main__":

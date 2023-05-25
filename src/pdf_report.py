@@ -1,6 +1,5 @@
 import itertools
-from random import randint
-from statistics import mean
+from transliterate import translit
 
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen.canvas import Canvas
@@ -49,5 +48,7 @@ def _export_to_pdf(data, filepath):
 def create_pdf_report(filepath: str, db: Session = None):
     data = [("Код книги", "Название", "Автор", "Сейчас доступно", "Всего")]
     for book in db.query(Book).all():
-        data.append((book.code, book.name, book.author, book.get_available_count(), book.count))
+        fields = [book.code, book.name, book.author, str(book.get_available_count()), str(book.count)]
+        fields = [translit(field, "ru", reversed=True) for field in fields]
+        data.append(fields)
     _export_to_pdf(data, filepath)

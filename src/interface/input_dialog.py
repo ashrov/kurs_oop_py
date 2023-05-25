@@ -1,3 +1,5 @@
+import time
+
 from customtkinter import CTkInputDialog
 
 
@@ -11,4 +13,6 @@ class CustomInputDialog(CTkInputDialog):
 
         super().__init__(*args, **kwargs)
 
-        self.after(40, lambda: self._cancel_button.configure(command=self._cancel_event))
+        self.after(10, lambda: self._cancel_button.configure(command=self._cancel_event, text="Отменить"))
+
+        self.after(10, lambda: self._ok_button.configure(text="Ок"))
