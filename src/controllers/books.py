@@ -71,11 +71,13 @@ class BooksController(BasicModelController):
     @staticmethod
     @refresh_tables((Book, BookToReader, Reader))
     def delete_book(book: Book):
-        confirmation = NotificationWindow(title="Подтвердите действие",
-                                          message="Вы уверены, что хотите удалить эту книгу?\n"
-                                                  "При удалении книги, автоматически удалится запись читателей на эту книгу",
-                                          wait_input=False,
-                                          show_cancel=True)
+        confirmation = NotificationWindow(
+            title="Подтвердите действие",
+            message="Вы уверены, что хотите удалить эту книгу?\n"
+                    "При удалении книги, автоматически удалится запись читателей на эту книгу",
+            wait_input=False,
+            show_cancel=True
+        )
 
         if confirmation.get_input():
             book.delete()

@@ -1,6 +1,6 @@
 import enum
 from typing import Any, Callable
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from functools import wraps
 from datetime import datetime
 
@@ -82,7 +82,16 @@ class TableViewable(Base):
         db.commit()
 
 
-class Book(TableViewable):
+class Sortable(TableViewable):
+    __abstract__ = True
+
+    @staticmethod
+    @abstractmethod
+    def get_sort_fields() -> dict[str, Any]:
+        ...
+
+
+class Book(Sortable):
     __tablename__ = "books"
 
     id = Column(BigInteger(), primary_key=True)
@@ -91,7 +100,7 @@ class Book(TableViewable):
     author = Column(String(128), nullable=False)
     count = Column(Integer(), default=0, nullable=False)
 
-    readers_associations = relationship("BookToReader", back_populates="book", cascade="all, delete-orphan")
+    readers_associations = relationship("BookToReader", back_populates="book", cascade="all, delete")
 
     @staticmethod
     def get_table_name() -> str:
@@ -126,8 +135,17 @@ class Book(TableViewable):
     def get_available_count(self) -> int:
         return self.count - len(self.readers_associations)
 
+    @staticmethod
+    def get_sort_fields() -> dict[str, Any]:
+        return {
+            "Код": Book.code,
+            "Название": Book.name,
+            "Автор": Book.author,
+            "Количество": Book.count
+        }
 
-class Reader(TableViewable):
+
+class Reader(Sortable):
     __tablename__ = "readers"
 
     id = Column(BigInteger(), primary_key=True)
@@ -135,7 +153,7 @@ class Reader(TableViewable):
     lastname = Column(String(64))
     phone = Column(String(12), unique=True, nullable=False)
 
-    books_associations = relationship("BookToReader", back_populates="reader", cascade="all, delete-orphan")
+    books_associations = relationship("BookToReader", back_populates="reader")
 
     @staticmethod
     def get_table_name() -> str:
@@ -166,13 +184,20 @@ class Reader(TableViewable):
             "Книг взято": f"{len(self.books_associations)} шт.",
         }
 
+    @staticmethod
+    def get_sort_fields() -> dict[str, Any]:
+        return {
+            "Имя": Reader.firstname,
+            "Фамилия": Reader.lastname,
+        }
 
-class BookToReader(TableViewable):
+
+class BookToReader(Sortable):
     __tablename__ = "book_to_reader"
 
     id = Column(BigInteger, primary_key=True)
-    book_id = Column(BigInteger, ForeignKey("books.id"))
-    reader_id = Column(BigInteger, ForeignKey("readers.id"))
+    book_id = Column(BigInteger, ForeignKey("books.id", ondelete="CASCADE"))
+    reader_id = Column(BigInteger, ForeignKey("readers.id", ondelete="RESTRICT"))
     issue_date = Column(DateTime, default=datetime.now(), nullable=False)
 
     book = relationship("Book", back_populates="readers_associations")
@@ -205,6 +230,13 @@ class BookToReader(TableViewable):
             "Дата выдачи": self.issue_date
         }
 
+    @staticmethod
+    def get_sort_fields() -> dict[str, Any]:
+        return {
+            "Код книги": BookToReader.book.has(Book.code),
+            "Дата выдачи": BookToReader.issue_date
+        }
+
 
 class EventType(enum.Enum):
     BOOK_TAKEN = "Book taken"
@@ -212,7 +244,7 @@ class EventType(enum.Enum):
     NEW_READER = "New reader"
 
 
-class History(TableViewable):
+class History(Sortable):
     __tablename__ = "history"
 
     id = Column(BigInteger, primary_key=True)
@@ -237,3 +269,10 @@ class History(TableViewable):
     @staticmethod
     def get_search_where_clause(str_to_search: str = "") -> ColumnElement | None:
         return None
+
+    @staticmethod
+    def get_sort_fields() -> dict[str, Any]:
+        return {
+            "Время": History.time,
+            "Событие": History.event_type
+        }

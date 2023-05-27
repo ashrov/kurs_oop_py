@@ -3,8 +3,8 @@ from customtkinter import CTkToplevel
 
 from .app_controller import refresh_tables
 from .basic_model_controller import BasicModelController
-from ..db import TableViewable, Book, BookToReader, Reader, get_database, Session, add_it_to_history, EventType
-from ..interface import Table, RowAction, ReaderEditWindow
+from ..db import BookToReader, Reader, get_database, Session
+from ..interface import Table, RowAction, ReaderEditWindow, NotificationWindow, ErrorNotification
 
 
 class TakenBook(BookToReader):
@@ -50,3 +50,20 @@ class ReadersController(BasicModelController):
     def return_book(db_obj: BookToReader, db: Session = None):
         db.delete(db_obj)
         db.commit()
+
+    @staticmethod
+    @refresh_tables((Reader, ))
+    def delete_reader(reader: Reader):
+        if len(reader.books_associations):
+            ErrorNotification("Невозможно удалить читателя, пока на него записана хотя бы одна книга")
+            return
+
+        confirmation = NotificationWindow(
+            title="Подтвердите действие",
+            message="Вы уверены, что хотите удалить этого читателя'?",
+            wait_input=False,
+            show_cancel=True
+        )
+
+        if confirmation.get_input():
+            reader.delete()

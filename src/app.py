@@ -21,12 +21,12 @@ _RowType = TypeVar("_RowType", Type[TableViewable], None)
 
 
 class CustomTabView(CTkTabview):
-    def __init__(self, app: "Application", config: ConfigModel, *args, **kwargs):
-        super().__init__(app, *args, **kwargs)
+    def __init__(self, config: ConfigModel, *args, **kwargs):
+        self._button_height = 32
+        super().__init__(*args, **kwargs)
 
         self._config = config
 
-        self._app = app
         self.tables: list[Table] = list()
 
     def add(self, db_class: _RowType, *args, **kwargs) -> CTkFrame:
@@ -102,13 +102,13 @@ class Application(CTk):
 
         self._create_dump_menu()
 
-        self.tab_view = CustomTabView(self, self._config)
+        self.tab_view = CustomTabView(master=self, config=self._config)
         self.tab_view.pack(padx=10, pady=10, fill="both", expand=True)
 
         book_actions = [
             RowAction("Выдать", command=lambda db_obj: BooksController.give_book_to_reader(self, db_obj)),
-            RowAction("Изменить", command=lambda db_obj: BooksController.show_edit_window(self, self._config, db_obj)),
-            RowAction("Удалить", command=lambda db_obj: BooksController.delete_book(db_obj))
+            RowAction("", command=lambda db_obj: BooksController.show_edit_window(self, self._config, db_obj), image_name="edit"),
+            RowAction("", command=lambda db_obj: BooksController.delete_book(db_obj), image_name="delete")
         ]
         self.tab_view.add(Book,
                           row_actions=book_actions,
@@ -119,6 +119,7 @@ class Application(CTk):
         reader_actions = [
             RowAction("Выданные книги", lambda db_obj: ReadersController.show_taken_books(self, self._config, db_obj)),
             RowAction("Изменить", command=lambda db_obj: ReadersController.show_edit_window(self, self._config, db_obj)),
+            RowAction("Удалить", command=lambda db_obj: ReadersController.delete_reader(db_obj))
         ]
         self.tab_view.add(Reader,
                           row_actions=reader_actions,
