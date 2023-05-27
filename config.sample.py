@@ -8,11 +8,11 @@ database = {
 
 buttons_style = {
     "in_table_buttons": {
-        "height": 16,
+        "height": 26,
         "width": 10
     },
     "other_buttons": {
-        "height": 16,
+        "height": 30,
         "width": 100
     }
 
