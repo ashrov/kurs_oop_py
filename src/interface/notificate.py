@@ -22,7 +22,7 @@ class NotificationWindow(CTkToplevel):
         self.lift()
         self.attributes("-topmost", True)  # stay on top
         self.protocol("WM_DELETE_WINDOW", self._cancel_event)
-        self.after(10, self._create_widgets)
+        self.after(100, self._create_widgets)
         self.grab_set()
 
         if self._wait_input:

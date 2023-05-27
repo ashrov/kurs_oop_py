@@ -1,11 +1,12 @@
 from typing import Type, TypeVar, Iterable
 from logging import getLogger
 
+from sqlalchemy.exc import OperationalError
 from customtkinter import set_default_color_theme, set_appearance_mode, \
     CTk, CTkButton, CTkTabview, CTkFrame, CTkProgressBar
 
-from .db import TableViewable, Book, Reader, BookToReader, Author, History, init_db
-from .interface import Table, RowAction, ProgressBarWindow
+from .db import TableViewable, Book, Reader, BookToReader, History, init_db
+from .interface import Table, RowAction, ProgressBarWindow, ErrorNotification
 from .config_models import ConfigModel
 from .controllers import BooksController, ToolBarController, AppController, ReadersController
 
@@ -70,16 +71,26 @@ class Application(CTk):
 
         self.after(20, self._create_progress_bar)
 
-        self.after(100, self._create_widgets)
+        self.after(500, self._connect_to_db)
 
     def _create_progress_bar(self):
         self._loading_progress = ProgressBarWindow(self, "Загрузка", ["Инициализация подключения к базе данных",
                                                                       "Инициализация графических элементов",
                                                                       "Загрузка данных"])
 
-    def _create_widgets(self):
-        init_db(self._config.database)
+    def _connect_to_db(self):
+        try:
+            logger.info("Connecting to database")
+            init_db(self._config.database)
+            self.after(500, self._create_widgets)
+        except OperationalError as e:
+            logger.exception("Unable to connect to database", exc_info=True)
+            # self._loading_progress.stop()
+            self._create_widgets()
+            ErrorNotification("Невозможно подключиться к базе данных.\n"
+                              f"Ошибка: {e.args}")
 
+    def _create_widgets(self):
         self._loading_progress.next()
 
         AppController.set_app(self)

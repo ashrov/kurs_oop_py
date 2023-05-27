@@ -1,7 +1,6 @@
 import logging
 
 import config
-from src.db import init_db
 from src.app import Application
 from src.config_models import ConfigModel
 

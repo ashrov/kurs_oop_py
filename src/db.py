@@ -91,7 +91,6 @@ class Book(TableViewable):
     author = Column(String(128), nullable=False)
     count = Column(Integer(), default=0, nullable=False)
 
-    authors = relationship("Author", secondary="book_to_author", back_populates="books", uselist=True)
     readers_associations = relationship("BookToReader", back_populates="book", cascade="all, delete-orphan")
 
     @staticmethod
@@ -168,49 +167,6 @@ class Reader(TableViewable):
         }
 
 
-class Author(TableViewable):
-    __tablename__ = "authors"
-
-    id = Column(BigInteger, primary_key=True)
-    firstname = Column(String(64))
-    lastname = Column(String(64))
-    patronymic = Column(String(64))
-
-    books = relationship("Book", secondary="book_to_author", back_populates="authors", uselist=True)
-
-    __table_args__ = (
-        UniqueConstraint("firstname", "lastname", "patronymic"),
-    )
-
-    @staticmethod
-    def get_table_name() -> str:
-        return "Авторы"
-
-    @staticmethod
-    def get_table_fields() -> list[str]:
-        return ["Имя", "Фамилия", "Отчество"]
-
-    @staticmethod
-    def get_search_where_clause(str_to_search: str = "") -> ColumnElement | None:
-        if not str_to_search:
-            return None
-
-        clause = sql.or_(
-            Author.firstname.contains(str_to_search),
-            Author.lastname.contains(str_to_search),
-            Author.patronymic.contains(str_to_search),
-        )
-
-        return clause
-
-    def get_values(self) -> dict[str, Any]:
-        return {
-            "Имя": self.firstname,
-            "Фамилия": self.lastname,
-            "Отчество": self.patronymic
-        }
-
-
 class BookToReader(TableViewable):
     __tablename__ = "book_to_reader"
 
@@ -248,13 +204,6 @@ class BookToReader(TableViewable):
             "Номер телефона": self.reader.phone,
             "Дата выдачи": self.issue_date
         }
-
-
-class BookToAuthor(Base):
-    __tablename__ = "book_to_author"
-
-    book_id = Column(BigInteger, ForeignKey("books.id"), primary_key=True)
-    author_id = Column(BigInteger, ForeignKey("authors.id"), primary_key=True)
 
 
 class EventType(enum.Enum):

@@ -110,7 +110,7 @@ class Table(CTkFrame):
                 )
 
         for column, element in enumerate(row_elements):
-            element.grid(row=len(self._rows) + 1, column=column, padx=10, pady=4)
+            element.grid(row=len(self._rows) + 1, column=column, padx=10, pady=2)
 
         self._rows.append(row)
         self._rows_widgets.extend(row_elements)
@@ -120,7 +120,7 @@ class Table(CTkFrame):
 
         for column, field in enumerate(self._db_class.get_table_fields()):
             label = CTkLabel(self._table_frame, text=field, font=header_font)
-            label.grid(row=0, column=column, padx=10)
+            label.grid(row=0, column=column, padx=10, pady=2)
 
     def clear(self):
         self._rows.clear()

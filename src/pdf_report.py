@@ -16,14 +16,11 @@ def _grouper(iterable, n):
 
 def _export_to_pdf(data, filepath):
     c = Canvas(filepath, pagesize=A4)
-    pdfmetrics.registerFont(TTFont('FreeSans', 'FreeSans.ttf'))
-    c.setFont('FreeSans', 16)
+
     w, h = A4
     max_rows_per_page = 40
 
-    c.drawString(50, h - 50, "Отчёт")
-
-    c.setFont('FreeSans', 8)
+    c.drawString(50, h - 50, "Report")
 
     x_offset = 50
     y_offset = 80
@@ -46,7 +43,7 @@ def _export_to_pdf(data, filepath):
 
 @get_database
 def create_pdf_report(filepath: str, db: Session = None):
-    data = [("Код книги", "Название", "Автор", "Сейчас доступно", "Всего")]
+    data = [("Code", "Name", "Author", "Available", "Total")]
     for book in db.query(Book).all():
         fields = [book.code, book.name, book.author, str(book.get_available_count()), str(book.count)]
         fields = [translit(field, "ru", reversed=True) for field in fields]

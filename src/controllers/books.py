@@ -14,7 +14,7 @@ class BooksController(BasicModelController):
     @classmethod
     def give_book_to_reader(cls, master, db_object: Book):
         if db_object.get_available_count() <= 0:
-            ErrorNotification("Невозможно выдать книгу, так как они отсутствуют на складе")
+            ErrorNotification("Невозможно выдать книгу, так как она отсутствуют на складе")
             return
 
         phone_number_dialog = CustomInputDialog(title="Выдача книги",
@@ -37,7 +37,7 @@ class BooksController(BasicModelController):
             logger.info(f"incorrect phone number '{phone_number}'")
 
     @staticmethod
-    @refresh_tables
+    @refresh_tables((Book, Reader, BookToReader))
     @get_database
     def _assign_book_to_reader(book: Book, phone_number: str, db: Session = None):
         reader = db.query(Reader).where(Reader.phone == phone_number).first()
