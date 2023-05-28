@@ -18,7 +18,11 @@ logger = getLogger(__name__)
 
 
 class RowAction:
-    def __init__(self, text: str, command: Callable, image_name: str = None):
+    def __init__(self,
+                 command: Callable[[TableViewable | None], None],
+                 text: str = "",
+                 image_name: str = None):
+
         self.text = text
         self.command = command
 
@@ -30,7 +34,7 @@ class RowAction:
 
         def command():
             if db_obj:
-                self.command(db_obj=db_obj)
+                self.command(db_obj)
             else:
                 self.command()
 
@@ -96,10 +100,11 @@ class Table(CTkFrame):
         if self._add_command:
             add_image = ImagesManager.get("add")
             add_button = CTkButton(buttons_frame,
-                                   text="Добавить",
+                                   text="",
                                    command=self._add_command,
                                    image=add_image,
-                                   **self._other_buttons_style.dict())
+                                   width=self._other_buttons_style.height,
+                                   height=self._other_buttons_style.height)
             add_button.pack(padx=4, pady=4, side="left")
 
         if self._searchable:

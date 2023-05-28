@@ -233,7 +233,6 @@ class BookToReader(Sortable):
     @staticmethod
     def get_sort_fields() -> dict[str, Any]:
         return {
-            "Код книги": BookToReader.book.has(Book.code),
             "Дата выдачи": BookToReader.issue_date
         }
 

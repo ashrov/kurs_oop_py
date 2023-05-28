@@ -106,9 +106,12 @@ class Application(CTk):
         self.tab_view.pack(padx=10, pady=10, fill="both", expand=True)
 
         book_actions = [
-            RowAction("Выдать", command=lambda db_obj: BooksController.give_book_to_reader(self, db_obj)),
-            RowAction("", command=lambda db_obj: BooksController.show_edit_window(self, self._config, db_obj), image_name="edit"),
-            RowAction("", command=lambda db_obj: BooksController.delete_book(db_obj), image_name="delete")
+            RowAction(text="Выдать",
+                      command=lambda db_obj: BooksController.give_book_to_reader(self, db_obj)),
+            RowAction(command=lambda db_obj: BooksController.show_edit_window(self, self._config, db_obj),
+                      image_name="edit"),
+            RowAction(command=lambda db_obj: BooksController.delete_book(db_obj),
+                      image_name="delete")
         ]
         self.tab_view.add(Book,
                           row_actions=book_actions,
@@ -117,16 +120,19 @@ class Application(CTk):
         # self.tab_view.add(Author)
 
         reader_actions = [
-            RowAction("Выданные книги", lambda db_obj: ReadersController.show_taken_books(self, self._config, db_obj)),
-            RowAction("Изменить", command=lambda db_obj: ReadersController.show_edit_window(self, self._config, db_obj)),
-            RowAction("Удалить", command=lambda db_obj: ReadersController.delete_reader(db_obj))
+            RowAction(text="Выданные книги",
+                      command=lambda db_obj: ReadersController.show_taken_books(self, self._config, db_obj)),
+            RowAction(command=lambda db_obj: ReadersController.show_edit_window(self, self._config, db_obj),
+                      image_name="edit"),
+            RowAction(command=lambda db_obj: ReadersController.delete_reader(db_obj),
+                      image_name="delete")
         ]
         self.tab_view.add(Reader,
                           row_actions=reader_actions,
                           add_command=lambda: ReadersController.show_edit_window(self, self._config))
 
         book_to_reader_actions = [
-            RowAction("Вернуть", command=ReadersController.return_book)
+            RowAction(text="Вернуть", command=ReadersController.return_book)
         ]
         self.tab_view.add(BookToReader,
                           row_actions=book_to_reader_actions)
