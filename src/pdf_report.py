@@ -1,44 +1,35 @@
-import itertools
 from transliterate import translit
 
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen.canvas import Canvas
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
+from borb.pdf import SingleColumnLayout
+from borb.pdf import PageLayout
+from borb.pdf import FlexibleColumnWidthTable
+from borb.pdf import Paragraph
+from borb.pdf import Document
+from borb.pdf import Page
+from borb.pdf import PDF
 
 from .db import get_database, Session, Book
 
 
-def _grouper(iterable, n):
-    args = [iter(iterable)] * n
-    return itertools.zip_longest(*args)
+def _export_to_pdf(data: list[list[str]], filename: str):
+    doc: Document = Document()
 
+    page: Page = Page()
 
-def _export_to_pdf(data, filepath):
-    c = Canvas(filepath, pagesize=A4)
+    doc.add_page(page)
 
-    w, h = A4
-    max_rows_per_page = 40
+    # set a PageLayout
+    layout: PageLayout = SingleColumnLayout(page)
 
-    c.drawString(50, h - 50, "Report")
+    table = FlexibleColumnWidthTable(number_of_rows=len(data),
+                                     number_of_columns=len(data[0]))
+    for line in data:
+        for field in line:
+            table = table.add(Paragraph(translit(field, "ru", reversed=True)))
+    layout.add(table)
 
-    x_offset = 50
-    y_offset = 80
-
-    padding = 15
-
-    xlist = [x + x_offset for x in [0, 50, 220, 380, 460, 500]]
-    ylist = [h - y_offset - i * padding for i in range(max_rows_per_page + 1)]
-
-    for rows in _grouper(data, max_rows_per_page):
-        rows = tuple(filter(bool, rows))
-        c.grid(xlist, ylist[:len(rows) + 1])
-        for y, row in zip(ylist[:-1], rows):
-            for x, cell in zip(xlist, row):
-                c.drawString(x + 2, y - padding + 3, str(cell))
-        c.showPage()
-
-    c.save()
+    with open(filename, "wb") as pdf_file:
+        PDF.dumps(pdf_file, doc)
 
 
 @get_database

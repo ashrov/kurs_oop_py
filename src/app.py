@@ -71,24 +71,27 @@ class Application(CTk):
 
         self.after(20, self._create_progress_bar)
 
-        self.after(500, self._connect_to_db)
+        self.after(200, self._create_widgets)
 
     def _create_progress_bar(self):
-        self._loading_progress = ProgressBarWindow(self, "Загрузка", ["Инициализация подключения к базе данных",
-                                                                      "Инициализация графических элементов",
+        self._loading_progress = ProgressBarWindow(self, "Загрузка", ["Инициализация графических элементов",
+                                                                      "Инициализация подключения к базе данных",
                                                                       "Загрузка данных"])
 
     def _connect_to_db(self):
         try:
             logger.info("Connecting to database")
             init_db(self._config.database)
-            self.after(500, self._create_widgets)
+            self._loading_progress.next()
+            self.refresh()
+            self.after(1000, self._loading_progress.stop)
         except OperationalError as e:
             logger.exception("Unable to connect to database", exc_info=True)
-            # self._loading_progress.stop()
-            self._create_widgets()
+            self._loading_progress.stop()
             ErrorNotification("Невозможно подключиться к базе данных.\n"
                               f"Ошибка: {e.args}")
+
+            self.destroy()
 
     def _create_widgets(self):
         self._loading_progress.next()
@@ -117,8 +120,6 @@ class Application(CTk):
                           row_actions=book_actions,
                           add_command=lambda: BooksController.show_edit_window(self, self._config))
 
-        # self.tab_view.add(Author)
-
         reader_actions = [
             RowAction(text="Выданные книги",
                       command=lambda db_obj: ReadersController.show_taken_books(self, self._config, db_obj)),
@@ -140,8 +141,7 @@ class Application(CTk):
         self.tab_view.add(History, searchable=False)
 
         self._loading_progress.next()
-        self.after(50, self.tab_view.refresh)
-        self.after(1000, self._loading_progress.stop)
+        self.after(100, self._connect_to_db)
 
     def _create_dump_menu(self):
         bar_frame = CTkFrame(self)

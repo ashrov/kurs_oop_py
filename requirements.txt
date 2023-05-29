@@ -3,6 +3,6 @@ pymysql
 sqlalchemy
 customtkinter
 cryptography
-reportlab
+borb
 transliterate
 Pillow

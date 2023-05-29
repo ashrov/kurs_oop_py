@@ -19,7 +19,7 @@ logger = getLogger(__name__)
 
 class RowAction:
     def __init__(self,
-                 command: Callable[[TableViewable | None], None],
+                 command: Callable[[TableViewable], None] | Callable,
                  text: str = "",
                  image_name: str = None):
 
@@ -42,7 +42,7 @@ class RowAction:
             master=master,
             text=self.text,
             command=command,
-            image=ImagesManager.get(self.image_name, size=button_style.height - 6) if self.image_name else None,
+            image=ImagesManager.get(self.image_name, size=button_style.height - 8) if self.image_name else None,
             **button_style.dict()
         )
 
@@ -124,7 +124,7 @@ class Table(CTkFrame):
     def _create_search_frame(self, frame: CTkFrame):
         self._search_entry = CTkEntry(frame,
                                       placeholder_text="Введите строку для поиска",
-                                      height=self._other_buttons_style.height,
+                                      height=self._other_buttons_style.height + 1,
                                       width=200)
         self._search_entry.pack(padx=4, pady=4, side="right")
         self._search_entry.bind("<Return>", self._on_search)
