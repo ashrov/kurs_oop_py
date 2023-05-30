@@ -12,7 +12,7 @@ class Dumper:
     """ Класс для взаимодействия с файлами дампов """
 
     @staticmethod
-    @database.get_database
+    @database.wrap_with_database
     def dump_to_file(filepath: str, db: database.Session = None):
         """
         Экспорт данных их бд в файл в формате json.
@@ -35,14 +35,17 @@ class Dumper:
                                                      books=reader_books)
             pydantic_readers.append(pydantic_reader)
 
-        file_model = pydantic_models.FileModel(books=books, readers=pydantic_readers)
+        events = [pydantic_models.Event(**vars(event))
+                  for event in db.query(database.History).all()]
+
+        file_model = pydantic_models.FileModel(books=books, readers=pydantic_readers, history=events)
 
         logger.debug(f"Saving dump data to file '{filepath}'")
         with open(filepath, "w", encoding="UTF-8") as f:
             f.write(file_model.json(indent=4, ensure_ascii=False))
 
     @classmethod
-    @database.get_database
+    @database.wrap_with_database
     def load_from_file(cls, filepath: str, db: database.Session = None):
         """
         Импорт данных в бд из json файла
@@ -87,6 +90,14 @@ class Dumper:
             db.commit()
 
             cls._add_books_to_reader(db_reader, reader.books, db)
+
+        db.query(database.History).delete()
+
+        for event in file_model.history:
+            db_event = database.History(**event.dict())
+            db.add(db_event)
+
+        db.commit()
 
     @staticmethod
     def _add_books_to_reader(reader: database.Reader,

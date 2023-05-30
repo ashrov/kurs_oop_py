@@ -1,13 +1,10 @@
-import re
-
-from customtkinter import CTkFrame, CTkButton
 from sqlalchemy.exc import IntegrityError, DatabaseError, DataError
 
-from ..table import Table
 from .basic_edit_window import BaseEditWindow, EditResult
-from src.db import get_database, Reader, Session, add_it_to_history, EventType
+from src.db import wrap_with_database, Reader, Session, EventType, add_event_to_history
 from src.exc import ModelEditError
 from src.config_models import ConfigModel
+from src.validators import Validator
 
 
 class ReaderEditWindow(BaseEditWindow):
@@ -29,16 +26,14 @@ class ReaderEditWindow(BaseEditWindow):
 
         self.add_bottom_buttons()
 
-    @add_it_to_history(EventType.NEW_READER)
-    @get_database
-    def save(self, db: Session) -> EditResult:
+    @wrap_with_database
+    def save(self, db: Session):
         try:
             self._reader.firstname = self.process_field(self._firstname_entry)
             self._reader.lastname = self.process_field(self._lastname_entry)
             self._reader.phone = self.process_field(self._phone_entry)
 
-            number_pattern = re.compile(r"\+7\w{10}")
-            if number_pattern.match(self._reader.phone):
+            if Validator.is_phone_number(self._reader.phone):
                 db.add(self._reader)
                 db.commit()
             else:
@@ -48,4 +43,4 @@ class ReaderEditWindow(BaseEditWindow):
         except DatabaseError as e:
             raise ModelEditError(e.args)
 
-        return self.edit_result
+        add_event_to_history(EventType.NEW_READER, f"Новый читатель '{self._reader.phone}'")

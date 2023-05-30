@@ -1,9 +1,8 @@
 from customtkinter import CTkFrame, CTkButton
 from sqlalchemy.exc import IntegrityError, DatabaseError, DataError
 
-from ..table import Table
 from .basic_edit_window import BaseEditWindow
-from src.db import get_database, Book, Session
+from src.db import wrap_with_database, Book, Session
 from src.exc import ModelEditError
 from src.config_models import ConfigModel
 
@@ -21,14 +20,11 @@ class BookEditWindow(BaseEditWindow):
         self._author_entry = self._add_field_row("Автор", db_obj.author)
         self._count_entry = self._add_field_row("Количество", db_obj.count)
 
-        # self.table = Table(Book, config, master=self)
-        # self.table.pack(fill="x")
-
         self._book = db_obj
 
         self.add_bottom_buttons()
 
-    @get_database
+    @wrap_with_database
     def save(self, db: Session):
         try:
             self._book.code = self.process_field(self._code_entry)
@@ -40,7 +36,7 @@ class BookEditWindow(BaseEditWindow):
             db.commit()
         except IntegrityError:
             raise ModelEditError("Ошибка, код книги дублируется")
-        except DataError:
-            raise ModelEditError("Ошибка, количество должно быть числом")
+        except DataError as e:
+            raise ModelEditError(e.args[0])
         except DatabaseError as e:
-            raise ModelEditError(e.args)
+            raise ModelEditError(e.args[0])

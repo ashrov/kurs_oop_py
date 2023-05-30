@@ -80,6 +80,7 @@ class BaseEditWindow(CTkToplevel, ABC):
     def _try_save(self):
         try:
             self.save()
+            self.destroy()
         except ModelEditError as e:
             logger.exception(f"Exception while save model: {e.args[0]}", exc_info=False)
             ErrorNotification(message=e.args[0])

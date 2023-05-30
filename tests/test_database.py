@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.db import init_db, get_database, Session, Book
+from src.db import init_db, wrap_with_database, Session, Book
 from src.config_models import ConfigModel
 import config
 
@@ -9,7 +9,7 @@ init_db(config_model.database)
 
 
 class TestDatabase(TestCase):
-    @get_database
+    @wrap_with_database
     def test_database(self, db: Session = None):
         test_book = Book(code="test_code_123",
                          name="test_name_123",

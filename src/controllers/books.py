@@ -1,10 +1,15 @@
 from logging import getLogger
-import re
+
+from customtkinter import CTkToplevel
 
 from .basic_model_controller import BasicModelController
 from .app_controller import refresh_tables
-from ..db import Book, get_database, Session, Reader, BookToReader
+from .tables_controller import TablesController, RowAction
+from ..db import (
+    Book, wrap_with_database, Session, Reader, BookToReader, add_event_to_history, EventType, History, TakenBook
+)
 from ..interface import CustomInputDialog, ErrorNotification, NotificationWindow, BookEditWindow
+from ..validators import Validator
 
 
 logger = getLogger(__name__)
@@ -14,7 +19,7 @@ class BooksController(BasicModelController):
     @classmethod
     def give_book_to_reader(cls, master, db_object: Book):
         if db_object.get_available_count() <= 0:
-            ErrorNotification("Невозможно выдать книгу, так как она отсутствуют на складе")
+            ErrorNotification("Невозможно выдать книгу, так как она отсутствует на складе")
             return
 
         phone_number_dialog = CustomInputDialog(title="Выдача книги",
@@ -29,16 +34,15 @@ class BooksController(BasicModelController):
             ErrorNotification(message="Номер телефона не может быть пустым")
             return
 
-        number_pattern = re.compile(r"\+7\w{10}")
-        if number_pattern.match(phone_number):
+        if Validator.is_phone_number(phone_number):
             cls._assign_book_to_reader(db_object, phone_number)
         else:
             ErrorNotification(message="Некорректный номер телефона")
             logger.info(f"incorrect phone number '{phone_number}'")
 
     @staticmethod
-    @refresh_tables((Book, Reader, BookToReader))
-    @get_database
+    @refresh_tables((Book, Reader, BookToReader, History))
+    @wrap_with_database
     def _assign_book_to_reader(book: Book, phone_number: str, db: Session = None):
         reader = db.query(Reader).where(Reader.phone == phone_number).first()
         if not reader:
@@ -55,6 +59,8 @@ class BooksController(BasicModelController):
             association = BookToReader(book_id=book.id, reader_id=reader.id)
             reader.books_associations.append(association)
             db.commit()
+
+            add_event_to_history(EventType.BOOK_TAKEN, f"Книга '{book.code}' была выдана читателю '{phone_number}'")
 
     @staticmethod
     @refresh_tables((Book, BookToReader))
@@ -81,3 +87,33 @@ class BooksController(BasicModelController):
 
         if confirmation.get_input():
             book.delete()
+
+    @classmethod
+    def show_taken_books(cls, config, db_obj: Book | None = None):
+        table_window = CTkToplevel(width=800, height=400)
+        table_window.minsize(800, 400)
+        table_window.title("Выданные книги")
+
+        row_actions = [RowAction(text="Списать", command=cls.delete_one_instance_book)]
+
+        table = TablesController.create_table(
+            db_class=TakenBook,
+            config=config,
+            master=table_window,
+            default_where_clause=TakenBook.reader.has(Book.id == db_obj.id),
+            row_actions=row_actions
+        )
+        table.pack(fill="both", expand=True)
+        table.refresh()
+        table.master.wait_window(table)
+
+    @staticmethod
+    @wrap_with_database
+    @refresh_tables()
+    def delete_one_instance_book(db_obj: BookToReader, db: Session = None):
+        db.get(Book, db_obj.book_id).count -= 1
+        db.delete(db_obj)
+        db.commit()
+
+        add_event_to_history(EventType.BOOK_WRITTEN_OFF,
+                             f"Экземпляр книги '{db_obj.book.code}' был списан с читателя '{db_obj.reader.phone}'")

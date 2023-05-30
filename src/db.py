@@ -26,7 +26,7 @@ def init_db(db_config: DbConfig):
     Base.metadata.create_all(bind=_engine)
 
 
-def get_database(f: Callable):
+def wrap_with_database(f: Callable):
     """ Декоратор, который подсовывает в аргументы оборачиваемой функции сессию базы данных """
 
     @wraps(f)
@@ -40,18 +40,12 @@ def get_database(f: Callable):
     return wrapper
 
 
-def add_it_to_history(event_type: "EventType"):
-    def decorator(f: Callable):
-        def wrapper(*args, **kwargs):
-            result = f(*args, **kwargs)
-            if result and result.value == 1:
-                with Session(bind=_engine, expire_on_commit=False) as db:
-                    db.add(History(event_type=event_type))
-                    db.commit()
+@wrap_with_database
+def add_event_to_history(event_type: "EventType", comment: str = "", db: Session = None):
+    event = History(event_type=event_type, comment=comment)
 
-            return result
-        return wrapper
-    return decorator
+    db.add(event)
+    db.commit()
 
 
 class TableViewable(Base):
@@ -76,7 +70,7 @@ class TableViewable(Base):
     def get_values(self) -> dict[str, Any]:
         ...
 
-    @get_database
+    @wrap_with_database
     def delete(self, db: Session) -> None:
         db.delete(self)
         db.commit()
@@ -238,9 +232,11 @@ class BookToReader(Sortable):
 
 
 class EventType(enum.Enum):
-    BOOK_TAKEN = "Book taken"
-    BOOK_RETURNED = "Book returned"
-    NEW_READER = "New reader"
+    BOOK_TAKEN = "Читатель взял книгу"
+    BOOK_RETURNED = "Книга возвращена"
+    NEW_READER = "Новый читатель"
+    READER_LEFT = "Читатель удалён"
+    BOOK_WRITTEN_OFF = "Экземпляр списан"
 
 
 class History(Sortable):
@@ -250,6 +246,7 @@ class History(Sortable):
 
     time = Column(DateTime, default=datetime.now())
     event_type = Column(sql.Enum(EventType), nullable=False)
+    comment = Column(String(256), default="")
 
     @staticmethod
     def get_table_name() -> str:
@@ -257,12 +254,13 @@ class History(Sortable):
 
     @staticmethod
     def get_table_fields() -> list[str]:
-        return ["Время", "Событие"]
+        return ["Время", "Событие", "Комментарий"]
 
     def get_values(self) -> dict[str, Any]:
         return {
             "Время": self.time,
-            "Событие": self.event_type
+            "Событие": self.event_type.value,
+            "Комментарий": self.comment
         }
 
     @staticmethod
@@ -274,4 +272,21 @@ class History(Sortable):
         return {
             "Время": History.time,
             "Событие": History.event_type
+        }
+
+
+# ----------- Вспомогательные модели ------------
+# Могут понадобиться для промежуточных таблиц
+
+class TakenBook(BookToReader):
+    @staticmethod
+    def get_table_fields() -> list[str]:
+        return ["Код", "Название", "Автор", "Дата выдачи"]
+
+    def get_values(self) -> dict[str, Any]:
+        return {
+            "Код": self.book.code,
+            "Название": self.book.name,
+            "Автор": self.book.author,
+            "Дата выдачи": self.issue_date
         }

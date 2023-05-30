@@ -7,7 +7,7 @@ from customtkinter import (
     CTkSwitch
 )
 
-from ..db import TableViewable, Session, get_database, Sortable
+from ..db import TableViewable, Session, wrap_with_database, Sortable
 from ..config_models import ConfigModel, ButtonModel
 from ..image_manager import ImagesManager
 
@@ -207,7 +207,7 @@ class Table(CTkFrame):
 
         self.after(5, lambda: self._fill_from_database(where_clause))
 
-    @get_database
+    @wrap_with_database
     def _fill_from_database(self, where_clause: Any = None, db: Session = None):
         q = db.query(self._db_class)
         if self._default_where_clause is not None:
