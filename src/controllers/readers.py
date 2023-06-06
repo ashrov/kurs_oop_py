@@ -1,10 +1,9 @@
 from typing import Any
 from customtkinter import CTkToplevel
 
-from .app_controller import refresh_tables
 from .basic_model_controller import BasicModelController
 from .books import BooksController
-from .tables_controller import TablesController
+from .tables_controller import TablesController, refresh_tables
 from ..db import BookToReader, Reader, wrap_with_database, Session, add_event_to_history, EventType, History, TakenBook
 from ..interface import RowAction, ReaderEditWindow, NotificationWindow, ErrorNotification
 from ..style_models import StyleConfig

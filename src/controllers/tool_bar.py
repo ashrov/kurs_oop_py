@@ -2,7 +2,7 @@ from logging import getLogger
 
 from tkinter import filedialog
 
-from .app_controller import refresh_tables
+from .tables_controller import refresh_tables
 from ..json_dump import Dumper
 from ..pdf_report import create_pdf_report
 from ..wrappers import log_it

@@ -1,7 +1,18 @@
-from typing import Type, Iterable
+from typing import Type, Iterable, Callable
 
 from ..interface import Table, RowAction
 from ..db import TableViewable
+
+
+def refresh_tables(tables: Iterable[Type[TableViewable]] | Type[TableViewable] | None = None):
+    def decorator(f: Callable):
+        def wrapper(*args, **kwargs):
+            result = f(*args, **kwargs)
+            TablesController.refresh(tables)
+            return result
+
+        return wrapper
+    return decorator
 
 
 class TablesController:

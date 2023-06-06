@@ -3,8 +3,7 @@ from logging import getLogger
 from customtkinter import CTkToplevel
 
 from .basic_model_controller import BasicModelController
-from .app_controller import refresh_tables
-from .tables_controller import TablesController, RowAction
+from .tables_controller import TablesController, RowAction, refresh_tables
 from ..db import (
     Book, wrap_with_database, Session, Reader, BookToReader, add_event_to_history, EventType, History, TakenBook
 )
