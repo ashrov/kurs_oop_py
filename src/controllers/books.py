@@ -105,6 +105,7 @@ class BooksController(BasicModelController):
         )
         table.pack(fill="both", expand=True)
         table.refresh()
+        table.grab_set()
         table.master.wait_window(table)
 
     @staticmethod

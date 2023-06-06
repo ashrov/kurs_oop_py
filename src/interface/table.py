@@ -95,7 +95,7 @@ class Table(CTkFrame):
                                    image=refresh_image,
                                    width=self._other_buttons_style.height,
                                    height=self._other_buttons_style.height)
-        refresh_button.pack(padx=4, pady=4, side="left")
+        refresh_button.pack(padx=4, pady=2, side="left")
 
         if self._add_command:
             add_image = ImagesManager.get("add")
@@ -105,7 +105,7 @@ class Table(CTkFrame):
                                    image=add_image,
                                    width=self._other_buttons_style.height,
                                    height=self._other_buttons_style.height)
-            add_button.pack(padx=4, pady=4, side="left")
+            add_button.pack(padx=4, pady=2, side="left")
 
         if self._searchable:
             self._create_search_frame(buttons_frame)
@@ -126,7 +126,7 @@ class Table(CTkFrame):
                                       placeholder_text="Введите строку для поиска",
                                       height=self._other_buttons_style.height + 1,
                                       width=200)
-        self._search_entry.pack(padx=4, pady=4, side="right")
+        self._search_entry.pack(padx=4, pady=2, side="right")
         self._search_entry.bind("<Return>", self._on_search)
 
         search_image = ImagesManager.get("search")
@@ -136,11 +136,11 @@ class Table(CTkFrame):
                                   image=search_image,
                                   width=self._other_buttons_style.height,
                                   height=self._other_buttons_style.height)
-        search_button.pack(padx=(16, 4), pady=4, side="right")
+        search_button.pack(padx=(16, 4), pady=2, side="right")
 
     def _create_sort_frame(self, frame: CTkFrame):
         self._desc_switch_frame = CTkFrame(frame, width=0, fg_color=frame.cget("fg_color"))
-        self._desc_switch_frame.pack(padx=(4, 16), pady=4, side="right")
+        self._desc_switch_frame.pack(padx=(4, 16), pady=2, side="right")
 
         up_label = CTkLabel(master=self._desc_switch_frame, text="", image=ImagesManager.get("up"))
         down_label = CTkLabel(master=self._desc_switch_frame, text="", image=ImagesManager.get("down"))

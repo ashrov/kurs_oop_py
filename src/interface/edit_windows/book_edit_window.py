@@ -5,6 +5,7 @@ from .basic_edit_window import BaseEditWindow
 from src.db import wrap_with_database, Book, Session
 from src.exc import ModelEditError
 from src.config_models import ConfigModel
+from src.validators import Validator
 
 
 class BookEditWindow(BaseEditWindow):
@@ -31,6 +32,9 @@ class BookEditWindow(BaseEditWindow):
             self._book.name = self.process_field(self._name_entry)
             self._book.author = self.process_field(self._author_entry)
             self._book.count = self.process_field(self._count_entry)
+
+            if not Validator.is_book_count(self._book.count):
+                raise ModelEditError("Некорректное количество книг")
 
             db.add(self._book)
             db.commit()

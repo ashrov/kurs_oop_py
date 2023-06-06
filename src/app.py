@@ -110,7 +110,7 @@ class Application(CTk):
         reader_actions = [
             RowAction(text="Выданные книги",
                       command=lambda db_obj: ReadersController.show_taken_books(self._config, db_obj)),
-            RowAction(command=lambda db_obj: ReadersController.show_edit_window(self._config, db_obj),
+            RowAction(command=lambda db_obj: ReadersController.show_edit_window(self, self._config, db_obj),
                       image_name="edit"),
             RowAction(command=lambda db_obj: ReadersController.delete_reader(db_obj),
                       image_name="delete")
