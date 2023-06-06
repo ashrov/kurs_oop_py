@@ -18,7 +18,7 @@ logger = getLogger(__name__)
 
 class BooksController(BasicModelController):
     @classmethod
-    def give_book_to_reader(cls, master, db_object: Book):
+    def give_book_to_reader(cls, db_object: Book):
         if db_object.get_available_count() <= 0:
             ErrorNotification("Невозможно выдать книгу, так как она отсутствует на складе")
             return
@@ -95,7 +95,10 @@ class BooksController(BasicModelController):
         table_window.minsize(800, 400)
         table_window.title("Выданные книги")
 
-        row_actions = [RowAction(text="Списать", command=cls.delete_one_instance_book)]
+        row_actions = (
+            RowAction(text="Вернуть", command=BooksController.return_book),
+            RowAction(text="Списать", command=BooksController.delete_one_instance_book)
+        )
 
         table = TablesController.create_table(
             db_class=TakenBook,
@@ -113,9 +116,29 @@ class BooksController(BasicModelController):
     @wrap_with_database
     @refresh_tables()
     def delete_one_instance_book(db_obj: BookToReader, db: Session = None):
-        db.get(Book, db_obj.book_id).count -= 1
+        delete_choice = NotificationWindow(
+            title="Подтвердите действие",
+            message="Вы уверены, что хотите списать данный экземпляр книги?",
+            show_cancel=True,
+            wait_input=False
+        )
+
+        if delete_choice.get_input():
+            logger.info(f"Writing off book '{db_obj.book.code}'")
+
+            db.get(Book, db_obj.book_id).count -= 1
+            db.delete(db_obj)
+            db.commit()
+
+            add_event_to_history(EventType.BOOK_WRITTEN_OFF,
+                                 f"Экземпляр книги '{db_obj.book.code}' был списан с читателя '{db_obj.reader.phone}'")
+
+    @staticmethod
+    @wrap_with_database
+    @refresh_tables((BookToReader, Reader, TakenBook, History))
+    def return_book(db_obj: BookToReader, db: Session = None):
         db.delete(db_obj)
         db.commit()
 
-        add_event_to_history(EventType.BOOK_WRITTEN_OFF,
-                             f"Экземпляр книги '{db_obj.book.code}' был списан с читателя '{db_obj.reader.phone}'")
+        add_event_to_history(EventType.BOOK_RETURNED,
+                             f"Книга '{db_obj.book.code}' была возвращена читателем '{db_obj.reader.phone}'")

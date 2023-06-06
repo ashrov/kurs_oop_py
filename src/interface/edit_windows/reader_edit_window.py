@@ -26,6 +26,8 @@ class ReaderEditWindow(BaseEditWindow):
 
         self.add_bottom_buttons()
 
+        self.after(50, self.grab_set)
+
     @wrap_with_database
     def save(self, db: Session):
         try:
@@ -33,11 +35,10 @@ class ReaderEditWindow(BaseEditWindow):
             self._reader.lastname = self.process_field(self._lastname_entry)
             self._reader.phone = self.process_field(self._phone_entry)
 
-            if Validator.is_phone_number(self._reader.phone):
-                db.add(self._reader)
-                db.commit()
-            else:
-                raise ModelEditError("Некорректный номер телефона")
+            Validator.validate_phone_number(self._reader.phone)
+
+            db.add(self._reader)
+            db.commit()
         except IntegrityError:
             raise ModelEditError("Ошибка, номер телефона уже был зарегистрирован ранее")
         except DatabaseError as e:

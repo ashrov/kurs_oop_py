@@ -4,3 +4,7 @@ class ModelEditError(Exception):
 
 class EmptyFieldError(ModelEditError):
     pass
+
+
+class FieldValidationError(ModelEditError):
+    pass

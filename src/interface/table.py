@@ -126,7 +126,7 @@ class Table(CTkFrame):
                                       placeholder_text="Введите строку для поиска",
                                       height=self._other_buttons_style.height + 1,
                                       width=200)
-        self._search_entry.pack(padx=4, pady=2, side="right")
+        self._search_entry.pack(padx=4, pady=4, side="right")
         self._search_entry.bind("<Return>", self._on_search)
 
         search_image = ImagesManager.get("search")

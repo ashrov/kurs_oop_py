@@ -31,10 +31,10 @@ class BookEditWindow(BaseEditWindow):
             self._book.code = self.process_field(self._code_entry)
             self._book.name = self.process_field(self._name_entry)
             self._book.author = self.process_field(self._author_entry)
-            self._book.count = self.process_field(self._count_entry)
+            count = self.process_field(self._count_entry)
 
-            if not Validator.is_book_count(self._book.count):
-                raise ModelEditError("Некорректное количество книг")
+            Validator.validate_book_count(count, self._book.get_taken_count())
+            self._book.count = count
 
             db.add(self._book)
             db.commit()

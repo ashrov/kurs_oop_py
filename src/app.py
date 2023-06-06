@@ -102,10 +102,10 @@ class Application(CTk):
             db_class=Book,
             add_command=lambda: BooksController.show_edit_window(self, self._config),
             row_actions=(
-                RowAction(text="Посмотреть выданные",
+                RowAction(text="Выданные книги",
                           command=lambda db_obj: BooksController.show_taken_books(self._style, db_obj)),
                 RowAction(text="Выдать",
-                          command=lambda db_obj: BooksController.give_book_to_reader(self, db_obj)),
+                          command=lambda db_obj: BooksController.give_book_to_reader(db_obj)),
                 RowAction(command=lambda db_obj: BooksController.show_edit_window(self, self._config, db_obj),
                           image_name="edit"),
                 RowAction(command=lambda db_obj: BooksController.delete_book(db_obj),
@@ -117,8 +117,8 @@ class Application(CTk):
             db_class=Reader,
             add_command=lambda: ReadersController.show_edit_window(self, self._config),
             row_actions=(
-                RowAction(text="Выданные книги",
-                          command=lambda db_obj: ReadersController.show_taken_books(self._config, db_obj)),
+                RowAction(text="Взятые книги",
+                          command=lambda db_obj: ReadersController.show_taken_books(self._style, db_obj)),
                 RowAction(command=lambda db_obj: ReadersController.show_edit_window(self, self._config, db_obj),
                           image_name="edit"),
                 RowAction(command=lambda db_obj: ReadersController.delete_reader(db_obj),
@@ -128,7 +128,10 @@ class Application(CTk):
 
         self.tab_view.add(
             db_class=BookToReader,
-            row_actions=(RowAction(text="Вернуть", command=ReadersController.return_book), )
+            row_actions=(
+                RowAction(text="Вернуть", command=BooksController.return_book),
+                RowAction(text="Списать", command=BooksController.delete_one_instance_book)
+            )
         )
 
         self.tab_view.add(db_class=History, searchable=False)

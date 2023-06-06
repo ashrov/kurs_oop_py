@@ -127,7 +127,10 @@ class Book(Sortable):
         }
 
     def get_available_count(self) -> int:
-        return self.count - len(self.readers_associations)
+        return self.count - self.get_taken_count()
+
+    def get_taken_count(self) -> int:
+        return len(self.readers_associations)
 
     @staticmethod
     def get_sort_fields() -> dict[str, Any]:
@@ -276,17 +279,32 @@ class History(Sortable):
 
 
 # ----------- Вспомогательные модели ------------
-# Могут понадобиться для промежуточных таблиц
+#   Могут понадобиться для промежуточных таблиц
 
 class TakenBook(BookToReader):
     @staticmethod
     def get_table_fields() -> list[str]:
-        return ["Код", "Название", "Автор", "Дата выдачи"]
+        return ["Код", "Название", "Автор", "Телефон читателя", "Дата выдачи"]
 
     def get_values(self) -> dict[str, Any]:
         return {
             "Код": self.book.code,
             "Название": self.book.name,
             "Автор": self.book.author,
+            "Телефон читателя": self.reader.phone,
             "Дата выдачи": self.issue_date
         }
+
+    @staticmethod
+    def get_search_where_clause(str_to_search: str = "") -> ColumnElement | None:
+        if not str_to_search:
+            return None
+
+        clause = sql.or_(
+            BookToReader.book.has(Book.code.contains(str_to_search)),
+            BookToReader.book.has(Book.name.contains(str_to_search)),
+            BookToReader.book.has(Book.author.contains(str_to_search)),
+            BookToReader.reader.has(Reader.phone.contains(str_to_search))
+        )
+
+        return clause
