@@ -42,7 +42,8 @@ class ReadersController(BasicModelController):
 
     @staticmethod
     @refresh_tables((Reader, History))
-    def delete_reader(reader: Reader):
+    @wrap_with_database
+    def delete_reader(reader: Reader, db: Session = None):
         if len(reader.books_associations):
             ErrorNotification("Невозможно удалить читателя, пока на него записана хотя бы одна книга")
             return
@@ -55,5 +56,6 @@ class ReadersController(BasicModelController):
         )
 
         if confirmation.get_input():
-            reader.delete()
+            db.delete(reader)
+            db.commit()
             add_event_to_history(EventType.READER_LEFT, f"Читатель '{reader.phone}' был удалён из базы данных")

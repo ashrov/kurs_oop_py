@@ -70,11 +70,6 @@ class TableViewable(Base):
     def get_values(self) -> dict[str, Any]:
         ...
 
-    @wrap_with_database
-    def delete(self, db: Session) -> None:
-        db.delete(self)
-        db.commit()
-
 
 class Sortable(TableViewable):
     __abstract__ = True

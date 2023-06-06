@@ -77,7 +77,8 @@ class BooksController(BasicModelController):
 
     @staticmethod
     @refresh_tables((Book, BookToReader, Reader))
-    def delete_book(book: Book):
+    @wrap_with_database
+    def delete_book(book: Book, db: Session = None):
         confirmation = NotificationWindow(
             title="Подтвердите действие",
             message="Вы уверены, что хотите удалить эту книгу?\n"
@@ -87,7 +88,8 @@ class BooksController(BasicModelController):
         )
 
         if confirmation.get_input():
-            book.delete()
+            db.delete(book)
+            db.commit()
 
     @classmethod
     def show_taken_books(cls, style: StyleConfig, db_obj: Book | None = None):
