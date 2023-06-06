@@ -16,6 +16,8 @@ class Validator:
     @staticmethod
     def validate_book_count(count: str | int | None, taken: int) -> None:
         if isinstance(count, int):
+            if count < 0:
+                raise FieldValidationError("Количество книг не может быть отрицательным.")
             if count < taken:
                 raise FieldValidationError("Количество книг не может быть меньше, чем количество уже взятых книг.\n"
                                            f"Взято данных книг: {taken}.")

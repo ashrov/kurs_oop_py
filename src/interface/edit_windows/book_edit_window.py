@@ -24,6 +24,7 @@ class BookEditWindow(BaseEditWindow):
         self._book = db_obj
 
         self.add_bottom_buttons()
+        self.grab_set()
 
     @wrap_with_database
     def save(self, db: Session):

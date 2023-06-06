@@ -64,14 +64,8 @@ class BooksController:
     @staticmethod
     @refresh_tables((Book, BookToReader))
     def show_edit_window(master, config, db_obj: Book | None = None):
-        if not master.top_level_window or not master.top_level_window.winfo_exists():
-            master.top_level_window = BookEditWindow(config, db_obj=db_obj)
-            master.top_level_window.wait_visibility()
-            master.top_level_window.grab_set()
-        else:
-            master.top_level_window.focus()
-
-        master.wait_window(master.top_level_window)
+        edit_window = BookEditWindow(config, db_obj=db_obj)
+        master.wait_window(edit_window)
 
     @staticmethod
     @refresh_tables((Book, BookToReader, Reader))
