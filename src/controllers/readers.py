@@ -1,7 +1,5 @@
-from typing import Any
 from customtkinter import CTkToplevel
 
-from .basic_model_controller import BasicModelController
 from .books import BooksController
 from .tables_controller import TablesController, refresh_tables
 from ..db import BookToReader, Reader, wrap_with_database, Session, add_event_to_history, EventType, History, TakenBook
@@ -9,7 +7,7 @@ from ..interface import RowAction, ReaderEditWindow, NotificationWindow, ErrorNo
 from ..style_models import StyleConfig
 
 
-class ReadersController(BasicModelController):
+class ReadersController:
     @staticmethod
     def show_taken_books(style: StyleConfig, db_obj: Reader | None = None):
         table_window = CTkToplevel(width=800, height=400)

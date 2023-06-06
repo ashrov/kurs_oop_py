@@ -2,7 +2,6 @@ from logging import getLogger
 
 from customtkinter import CTkToplevel
 
-from .basic_model_controller import BasicModelController
 from .tables_controller import TablesController, RowAction, refresh_tables
 from ..db import (
     Book, wrap_with_database, Session, Reader, BookToReader, add_event_to_history, EventType, History, TakenBook
@@ -15,7 +14,7 @@ from ..style_models import StyleConfig
 logger = getLogger(__name__)
 
 
-class BooksController(BasicModelController):
+class BooksController:
     @classmethod
     def give_book_to_reader(cls, db_object: Book):
         if db_object.get_available_count() <= 0:
