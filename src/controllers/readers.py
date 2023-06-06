@@ -33,8 +33,8 @@ class ReadersController:
 
     @staticmethod
     @refresh_tables((Reader, BookToReader, History))
-    def show_edit_window(master, config, db_obj: Reader | None = None):
-        edit_window = ReaderEditWindow(config, db_obj=db_obj)
+    def show_edit_window(master, db_obj: Reader | None = None):
+        edit_window = ReaderEditWindow(db_obj=db_obj)
         master.wait_window(edit_window)
 
     @staticmethod

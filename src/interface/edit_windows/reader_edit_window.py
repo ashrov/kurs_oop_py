@@ -1,6 +1,6 @@
-from sqlalchemy.exc import IntegrityError, DatabaseError, DataError
+from sqlalchemy.exc import IntegrityError, DatabaseError
 
-from .basic_edit_window import BaseEditWindow, EditResult
+from .basic_edit_window import BaseEditWindow
 from src.db import wrap_with_database, Reader, Session, EventType, add_event_to_history
 from src.exc import ModelEditError
 from src.config_models import ConfigModel
@@ -8,15 +8,12 @@ from src.validators import Validator
 
 
 class ReaderEditWindow(BaseEditWindow):
-    def __init__(self, config: ConfigModel, *args, db_obj: Reader = None, **kwargs):
+    def __init__(self, *args, db_obj: Reader = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.title("Изменение книги")
 
         if not db_obj:
             db_obj = Reader()
-            self.edit_result = EditResult.NEW
-        else:
-            self.edit_result = EditResult.EDITED
 
         self._firstname_entry = self._add_field_row("Имя", db_obj.firstname)
         self._lastname_entry = self._add_field_row("Фамилия", db_obj.lastname)

@@ -1,22 +1,15 @@
 from typing import Any
 from abc import ABC, abstractmethod
-from enum import Enum
 from logging import getLogger
 
 from tkinter import StringVar
-from customtkinter import CTkToplevel, CTk, CTkFrame, CTkEntry, CTkLabel, CTkButton
+from customtkinter import CTkToplevel, CTkFrame, CTkEntry, CTkLabel, CTkButton
 
-from ..notificate import NotificationWindow, ErrorNotification
+from ..notificate import ErrorNotification
 from src.exc import EmptyFieldError, ModelEditError
 
 
 logger = getLogger(__name__)
-
-
-class EditResult(Enum):
-    NEW = 1
-    EDITED = 0
-    CANCELED = 0
 
 
 class BaseEditWindow(CTkToplevel, ABC):
@@ -24,8 +17,6 @@ class BaseEditWindow(CTkToplevel, ABC):
         super().__init__(*args, **kwargs)
 
         self.resizable(False, False)
-
-        self.edit_result: EditResult | None = None
 
         self._rows_frame = CTkFrame(self)
         self._rows_frame.pack(pady=(10, 5), padx=10, fill="x")
@@ -54,7 +45,6 @@ class BaseEditWindow(CTkToplevel, ABC):
         buttons_frame.pack(side="bottom", fill="x", padx=10, pady=(5, 10))
 
     def _on_cancel(self):
-        self.edit_result = EditResult.CANCELED
         self.grab_release()
         self.destroy()
 

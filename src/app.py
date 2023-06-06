@@ -115,11 +115,11 @@ class Application(CTk):
 
         self.tab_view.add(
             db_class=Reader,
-            add_command=lambda: ReadersController.show_edit_window(self, self._config),
+            add_command=lambda: ReadersController.show_edit_window(self),
             row_actions=(
                 RowAction(text="Взятые книги",
                           command=lambda db_obj: ReadersController.show_taken_books(self._style, db_obj)),
-                RowAction(command=lambda db_obj: ReadersController.show_edit_window(self, self._config, db_obj),
+                RowAction(command=lambda db_obj: ReadersController.show_edit_window(self, db_obj),
                           image_name="edit"),
                 RowAction(command=lambda db_obj: ReadersController.delete_reader(db_obj),
                           image_name="delete")
