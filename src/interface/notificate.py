@@ -32,7 +32,7 @@ class NotificationWindow(CTkToplevel):
         self.title(self._title)
         self.resizable(False, False)
 
-        self._message_label = CTkLabel(self, text=self._message)
+        self._message_label = CTkLabel(self, text=self._message, wraplength=400)
         self._message_label.grid(row=0, column=0, columnspan=2, padx=20, pady=20, sticky="ew")
 
         ok_col_span = 1 if self._show_cancel else 2

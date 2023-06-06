@@ -1,5 +1,6 @@
 from typing import Type, TypeVar, Iterable
 from logging import getLogger
+import traceback
 
 from sqlalchemy.exc import OperationalError
 from customtkinter import set_default_color_theme, set_appearance_mode, \
@@ -8,6 +9,7 @@ from customtkinter import set_default_color_theme, set_appearance_mode, \
 from .db import TableViewable, Book, Reader, BookToReader, History, init_db
 from .interface import RowAction, ProgressBarWindow, ErrorNotification
 from .config_models import ConfigModel
+from .style_models import StyleConfig
 from .controllers import BooksController, ToolBarController, ReadersController, TablesController
 
 
@@ -21,18 +23,18 @@ _RowType = TypeVar("_RowType", Type[TableViewable], None)
 
 
 class CustomTabView(CTkTabview):
-    def __init__(self, config: ConfigModel, *args, **kwargs):
+    def __init__(self, style: StyleConfig, *args, **kwargs):
         self._button_height = 32
         super().__init__(*args, **kwargs)
 
-        self._config = config
+        self._style = style
 
     def add(self, db_class: _RowType, *args, **kwargs) -> CTkFrame:
         tab_frame = super().add(db_class.get_table_name())
 
         table = TablesController.create_table(
             *args,
-            config=self._config,
+            style=self._style,
             db_class=db_class,
             master=tab_frame,
             height=WINDOW_HEIGHT,
@@ -45,10 +47,13 @@ class CustomTabView(CTkTabview):
 
 
 class Application(CTk):
-    def __init__(self, config: ConfigModel):
+    def __init__(self, config: ConfigModel, style: StyleConfig):
         super().__init__()
 
+        self.report_callback_exception = self.handle_exception_callback
+
         self._config = config
+        self._style = style
 
         set_default_color_theme("dark-blue")
         set_appearance_mode("dark")
@@ -83,49 +88,50 @@ class Application(CTk):
     def _create_widgets(self):
         self._loading_progress.next()
 
-        self._buttons_style = self._config.buttons_style.other_buttons
+        self._buttons_style = self._style.other_buttons
         self.top_level_window = None
 
         logger.debug("Creating interface")
 
         self._create_dump_menu()
 
-        self.tab_view = CustomTabView(master=self, config=self._config)
+        self.tab_view = CustomTabView(master=self, style=self._style)
         self.tab_view.pack(padx=10, pady=10, fill="both", expand=True)
 
-        book_actions = [
-            RowAction(text="Посмотреть выданные",
-                      command=lambda db_obj: BooksController.show_taken_books(self._config, db_obj)),
-            RowAction(text="Выдать",
-                      command=lambda db_obj: BooksController.give_book_to_reader(self, db_obj)),
-            RowAction(command=lambda db_obj: BooksController.show_edit_window(self, self._config, db_obj),
-                      image_name="edit"),
-            RowAction(command=lambda db_obj: BooksController.delete_book(db_obj),
-                      image_name="delete")
-        ]
-        self.tab_view.add(Book,
-                          row_actions=book_actions,
-                          add_command=lambda: BooksController.show_edit_window(self, self._config))
+        self.tab_view.add(
+            db_class=Book,
+            add_command=lambda: BooksController.show_edit_window(self, self._config),
+            row_actions=(
+                RowAction(text="Посмотреть выданные",
+                          command=lambda db_obj: BooksController.show_taken_books(self._style, db_obj)),
+                RowAction(text="Выдать",
+                          command=lambda db_obj: BooksController.give_book_to_reader(self, db_obj)),
+                RowAction(command=lambda db_obj: BooksController.show_edit_window(self, self._config, db_obj),
+                          image_name="edit"),
+                RowAction(command=lambda db_obj: BooksController.delete_book(db_obj),
+                          image_name="delete")
+            )
+        )
 
-        reader_actions = [
-            RowAction(text="Выданные книги",
-                      command=lambda db_obj: ReadersController.show_taken_books(self._config, db_obj)),
-            RowAction(command=lambda db_obj: ReadersController.show_edit_window(self, self._config, db_obj),
-                      image_name="edit"),
-            RowAction(command=lambda db_obj: ReadersController.delete_reader(db_obj),
-                      image_name="delete")
-        ]
-        self.tab_view.add(Reader,
-                          row_actions=reader_actions,
-                          add_command=lambda: ReadersController.show_edit_window(self, self._config))
+        self.tab_view.add(
+            db_class=Reader,
+            add_command=lambda: ReadersController.show_edit_window(self, self._config),
+            row_actions=(
+                RowAction(text="Выданные книги",
+                          command=lambda db_obj: ReadersController.show_taken_books(self._config, db_obj)),
+                RowAction(command=lambda db_obj: ReadersController.show_edit_window(self, self._config, db_obj),
+                          image_name="edit"),
+                RowAction(command=lambda db_obj: ReadersController.delete_reader(db_obj),
+                          image_name="delete")
+            )
+        )
 
-        book_to_reader_actions = [
-            RowAction(text="Вернуть", command=ReadersController.return_book)
-        ]
-        self.tab_view.add(BookToReader,
-                          row_actions=book_to_reader_actions)
+        self.tab_view.add(
+            db_class=BookToReader,
+            row_actions=(RowAction(text="Вернуть", command=ReadersController.return_book), )
+        )
 
-        self.tab_view.add(History, searchable=False)
+        self.tab_view.add(db_class=History, searchable=False)
 
         self._loading_progress.next()
         self.after(100, self._connect_to_db)
@@ -151,3 +157,9 @@ class Application(CTk):
                                       **self._buttons_style.dict(),
                                       command=ToolBarController.on_pdf_report)
         pdf_report_button.pack(side="left", padx=4, pady=4)
+
+    @staticmethod
+    def handle_exception_callback(*args):
+        err = traceback.format_exception(*args)
+        ErrorNotification(message=str(err[-1]))
+        logger.exception(err[-1])

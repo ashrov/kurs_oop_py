@@ -8,12 +8,14 @@ class Validator:
         return bool(number_pattern.fullmatch(str_to_validate))
 
     @staticmethod
-    def is_book_count(field_to_validate: str | int | None) -> bool:
-        if isinstance(field_to_validate, int):
-            return field_to_validate >= 0
-        if isinstance(field_to_validate, str):
+    def is_book_count(count: str | int | None) -> bool:
+        if isinstance(count, int):
+            return count >= 0
+
+        if isinstance(count, str):
             try:
-                return int(field_to_validate) >= 0
+                return int(count) >= 0
             except ValueError:
                 return False
+
         return False

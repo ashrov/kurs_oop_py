@@ -8,7 +8,7 @@ from customtkinter import (
 )
 
 from ..db import TableViewable, Session, wrap_with_database, Sortable
-from ..config_models import ConfigModel, ButtonModel
+from ..style_models import StyleConfig, ButtonStyle
 from ..image_manager import ImagesManager
 
 
@@ -29,7 +29,7 @@ class RowAction:
         self.image_name = image_name
 
     def get_action_button(self, master: CTkScrollableFrame,
-                          button_style: ButtonModel,
+                          button_style: ButtonStyle,
                           db_obj: TableViewable = None) -> CTkButton:
 
         def command():
@@ -50,7 +50,7 @@ class RowAction:
 class Table(CTkFrame):
     def __init__(self,
                  db_class: _RowType,
-                 config: ConfigModel,
+                 style: StyleConfig,
                  master: Any,
                  *args,
                  searchable: bool = True,
@@ -66,9 +66,9 @@ class Table(CTkFrame):
         self._row_actions = row_actions
         self._default_where_clause = default_where_clause
         self._searchable = searchable
-        self._config = config
-        self._in_table_buttons_style = config.buttons_style.in_table_buttons
-        self._other_buttons_style = config.buttons_style.other_buttons
+        self._style = style
+        self._in_table_buttons_style = style.in_table_buttons
+        self._other_buttons_style = style.other_buttons
 
         self._sortable = issubclass(db_class, Sortable)
         self._sort_with_desc = False

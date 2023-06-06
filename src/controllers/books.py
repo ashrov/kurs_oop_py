@@ -10,6 +10,7 @@ from ..db import (
 )
 from ..interface import CustomInputDialog, ErrorNotification, NotificationWindow, BookEditWindow
 from ..validators import Validator
+from ..style_models import StyleConfig
 
 
 logger = getLogger(__name__)
@@ -89,7 +90,7 @@ class BooksController(BasicModelController):
             book.delete()
 
     @classmethod
-    def show_taken_books(cls, config, db_obj: Book | None = None):
+    def show_taken_books(cls, style: StyleConfig, db_obj: Book | None = None):
         table_window = CTkToplevel(width=800, height=400)
         table_window.minsize(800, 400)
         table_window.title("Выданные книги")
@@ -98,7 +99,7 @@ class BooksController(BasicModelController):
 
         table = TablesController.create_table(
             db_class=TakenBook,
-            config=config,
+            style=style,
             master=table_window,
             default_where_clause=TakenBook.reader.has(Book.id == db_obj.id),
             row_actions=row_actions
