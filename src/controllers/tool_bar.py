@@ -4,7 +4,7 @@ from tkinter import filedialog
 
 from .tables_controller import refresh_tables
 from ..json_dump import Dumper
-from ..pdf_report import create_pdf_report
+from ..pdf_report import PdfCreator
 from ..wrappers import log_it
 
 
@@ -38,4 +38,4 @@ class ToolBarController:
                                                 defaultextension=".pdf",
                                                 filetypes=[("PDF file", ".pdf")])
         if filename:
-            create_pdf_report(filename)
+            PdfCreator.create_pdf_report(filename)

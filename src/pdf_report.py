@@ -69,11 +69,13 @@ def _export_to_pdf(data: list[list[str]], filename: str):
         PDF.dumps(pdf_file, doc)
 
 
-@wrap_with_database
-def create_pdf_report(filepath: str, db: Session = None):
-    data = [("Code", "Name", "Author", "Phone number")]
-    for book_to_reader in db.query(BookToReader).all():
-        fields = [book_to_reader.book.code, book_to_reader.book.name,
-                  book_to_reader.book.author, book_to_reader.reader.phone]
-        data.append(fields)
-    _export_to_pdf(data, filepath)
+class PdfCreator:
+    @staticmethod
+    @wrap_with_database
+    def create_pdf_report(filepath: str, db: Session = None):
+        data = [("Code", "Name", "Author", "Phone number")]
+        for book_to_reader in db.query(BookToReader).all():
+            fields = [book_to_reader.book.code, book_to_reader.book.name,
+                      book_to_reader.book.author, book_to_reader.reader.phone]
+            data.append(fields)
+        _export_to_pdf(data, filepath)
